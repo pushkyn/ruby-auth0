@@ -7,11 +7,12 @@ module Auth0
 
       # proxying requests from instance methods to HTTP class methods
       %i(get post post_file put patch delete).each do |method|
-        define_method(method) do |path, body = {}|
+        define_method(method) do |path, body = {}, extra_headers = {}|
           safe_path = URI.escape(path)
           body = body.delete_if { |_, v| v.nil? }
           result = if [:get, :delete].include?(method)
-                     call(method, url(safe_path), timeout, add_headers(params: body))
+                     add_headers(extra_headers.nil? ? {params: body} : extra_headers )
+                     call(method, url(safe_path), timeout, headers)
                    elsif method == :post_file
                      call(:post, url(safe_path), timeout, headers, body)
                    else

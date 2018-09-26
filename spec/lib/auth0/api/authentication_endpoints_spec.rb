@@ -355,6 +355,14 @@ describe Auth0::Api::AuthenticationEndpoints do
     end
   end
 
+  context '.userinfo' do
+    it { expect(@instance).to respond_to(:userinfo) }
+    it 'is expected to make a GET request to /userinfo' do
+      expect(@instance).to receive(:get).with('/userinfo', nil, {Authorization: 'Bearer access-token'})
+      @instance.userinfo 'access-token'
+    end
+  end
+
   context '.authorization_url' do
     let(:redirect_uri) { 'http://redirect.com' }
     it { expect(@instance).to respond_to(:authorization_url) }
