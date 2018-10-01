@@ -25,8 +25,8 @@ describe Auth0::Api::AuthenticationEndpoints do
   end
 
   describe '.obtain_access_token' do
-    let(:acces_token) { @global_client.obtain_access_token }
-    it { expect(acces_token).to_not be_nil }
+    let(:access_token) { @global_client.obtain_access_token }
+    it { expect(access_token).to_not be_nil }
   end
 
   describe '.signup' do

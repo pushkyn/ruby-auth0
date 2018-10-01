@@ -10,6 +10,8 @@ describe Auth0::Api::AuthenticationEndpoints do
     @instance = dummy_instance
   end
 
+  subject { @instance }
+
   context '.api_token' do
     it { expect(@instance).to respond_to(:api_token) }
     it "is expected to POST to '/oauth/token'" do
@@ -86,6 +88,49 @@ describe Auth0::Api::AuthenticationEndpoints do
     end
     it { expect { @instance.obtain_user_tokens('', '') }.to raise_error 'Must supply a valid code' }
     it { expect { @instance.obtain_user_tokens('code', '') }.to raise_error 'Must supply a valid redirect_uri' }
+  end
+
+  context '.auth_code_exchange' do
+    it { is_expected.to respond_to(:auth_code_exchange) }
+
+    it 'is expected to make post request to /oauth/token' do
+      allow(@instance).to receive(:post).with(
+        '/oauth/token',
+        client_id: @instance.client_id,
+        client_secret: @instance.client_secret,
+        grant_type: 'authorization_code',
+        code: '__test_auth_code__',
+        redirect_uri: '__test_redirect_uri__'
+      ).and_return('access_token' => 'AccessToken')
+
+      is_expected.to receive(:post).with(
+        '/oauth/token',
+        client_id: @instance.client_id,
+        client_secret: @instance.client_secret,
+        grant_type: 'authorization_code',
+        code: '__test_auth_code__',
+        redirect_uri: '__test_redirect_uri__'
+      )
+
+      expect(
+        @instance.auth_code_exchange(
+          '__test_auth_code__',
+          '__test_redirect_uri__'
+        )['access_token']
+      ).to eq 'AccessToken'
+    end
+
+    it 'is expected to raise an error when the code is empty' do
+      expect do
+        @instance.auth_code_exchange('', '')
+      end.to raise_error 'Must provide an authorization code'
+    end
+
+    it 'is expected to raise an error when the URI is empty' do
+      expect do
+        @instance.auth_code_exchange('code', '')
+      end.to raise_error 'Must provide a redirect URI'
+    end
   end
 
   context '.login' do
