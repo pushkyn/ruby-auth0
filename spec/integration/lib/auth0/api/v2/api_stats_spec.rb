@@ -11,7 +11,7 @@ describe Auth0::Api::V2::Stats do
 
   # rubocop:disable Date
   describe '.daily_stats' do
-    let(:from) { Date.today.prev_day.strftime('%Y%m%d') }
+    let(:from) { Date.new(2017,1,1).strftime('%Y%m%d') }
     let(:to) { Date.today.strftime('%Y%m%d') }
     let(:daily_stats) do
       sleep 1
