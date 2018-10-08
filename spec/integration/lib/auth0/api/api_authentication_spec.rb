@@ -6,7 +6,7 @@ describe Auth0::Api::AuthenticationEndpoints do
               :password
 
   before(:all) do
-    @client = Auth0Client.new(Credentials.v2_creds)
+    @client = Auth0Client.new(v2_creds_with_secret)
     @global_client = Auth0Client.new(v1_global_creds)
 
     impersonate_username = Faker::Internet.user_name
@@ -57,5 +57,56 @@ describe Auth0::Api::AuthenticationEndpoints do
   describe '.wsfed_metadata' do
     let(:wsfed_metadata) { @global_client.wsfed_metadata }
     it { expect(wsfed_metadata).to(include('<EntityDescriptor')) }
+  end
+
+  describe '.login_ro' do
+    it 'should fail with an incorrect email' do
+      expect do
+        @client.login_ro(
+          @impersonate_user['email'] + '_invalid',
+          password
+        )
+      end.to raise_error Auth0::AccessDenied
+    end
+
+    it 'should fail with an incorrect password' do
+      expect do
+        @client.login_ro(
+          @impersonate_user['email'],
+          password + '_invalid'
+        )
+      end.to raise_error Auth0::AccessDenied
+    end
+
+    it 'should login successfully with a default scope' do
+      expect(
+        @client.login_ro(
+          @impersonate_user['email'],
+          password
+        )
+      ).to include( 'access_token', 'id_token', 'expires_in', 'scope' )
+    end
+
+    it 'should fail with an invalid audience' do
+      expect do
+        @client.login_ro(
+          @impersonate_user['email'],
+          password,
+          scope: 'test:scope',
+          audience: 'https://brucke.club/invalid/api/v1/'
+        )
+      end.to raise_error Auth0::BadRequest
+    end
+
+    it 'should login successfully with a custom audience' do
+      expect(
+        @client.login_ro(
+          @impersonate_user['email'],
+          password,
+          scope: 'test:scope',
+          audience: 'https://brucke.club/custom/api/v1/'
+        )
+      ).to include( 'access_token', 'expires_in' )
+    end
   end
 end
